@@ -1,13 +1,26 @@
+import { useSelector, useDispatch } from "react-redux";
+import { removeFromCart, clearCart } from "../store/cartSlice";
 import Cart from "../components/Cart";
 
-function CartPage({ cart, total, handleRemoveFromCart, handleClearCart }) {
+function CartPage() {
+  const dispatch = useDispatch();
+
+  const cartItems = useSelector((state) => {
+    return state.cart.items;
+  });
+
+  let total = 0;
+  cartItems.forEach((item) => {
+    total = total + item.price;
+  });
+
   return (
     <>
       <Cart
-        cart={cart}
+        cart={cartItems}
         total={total}
-        onRemoveFromCart={handleRemoveFromCart}
-        onClearCart={handleClearCart}
+        onRemoveFromCart={(id) => dispatch(removeFromCart(id))}
+        onClearCart={() => dispatch(clearCart())}
       />
     </>
   );

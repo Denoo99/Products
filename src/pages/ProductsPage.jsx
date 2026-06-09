@@ -1,7 +1,14 @@
 import ProductCard from "../components/ProductCard";
 import ProductForm from "../components/ProductForm";
+import { useDispatch, useSelector } from "react-redux";
+import { addToCart } from "../store/cartSlice";
 
-function ProductsPage({ products, cart, loading, onAddToCart, createProduct }) {
+function ProductsPage({ products, loading, createProduct }) {
+  const cartItems = useSelector((state) => {
+    return state.cart.items;
+  });
+
+  const dispatch = useDispatch();
   return (
     <>
       {loading && <p className="info-text">Loading products...</p>}
@@ -10,7 +17,7 @@ function ProductsPage({ products, cart, loading, onAddToCart, createProduct }) {
 
       <div className="products-list">
         {products.map((product) => {
-          const isInCart = cart.some((item) => {
+          const isInCart = cartItems.some((item) => {
             return item.id === product.id;
           });
 
@@ -21,7 +28,7 @@ function ProductsPage({ products, cart, loading, onAddToCart, createProduct }) {
               price={product.price}
               image={product.image}
               isInCart={isInCart}
-              onAddToCart={() => onAddToCart(product)}
+              onAddToCart={() => dispatch(addToCart(product))}
             />
           );
         })}

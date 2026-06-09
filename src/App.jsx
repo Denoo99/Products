@@ -4,77 +4,49 @@ import "./App.css";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProductsPage from "./pages/ProductsPage";
 import CartPage from "./pages/CartPage";
+import { getProducts, addProduct } from "./services/ProductService";
+import { useSelector } from "react-redux";
 
 function App() {
   const [products, setProducts] = useState([]);
-  const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const cartItems = useSelector((state) => {
+    return state.cart.items;
+  });
 
-  const API_URL = "https://fakestoreapi.com/";
   async function fetchProducts() {
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}products`);
-      const data = await response.json();
-
+      const data = await getProducts();
       setProducts(data);
     } catch (error) {
+      console.log(error);
       setError("Something went wrong while fetching products.");
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(function () {
+  useEffect(() => {
     fetchProducts();
   }, []);
-
-  function handleAddToCart(product) {
-    setCart([...cart, product]);
-  }
-
-  function handleRemoveFromCart(id) {
-    const updatedCart = cart.filter(function (item) {
-      return item.id !== id;
-    });
-
-    setCart(updatedCart);
-  }
-
-  function handleClearCart() {
-    setCart([]);
-  }
-
-  let total = 0;
-
-  cart.forEach((item) => {
-    total = total + item.price;
-  });
 
   const createProduct = async (newProduct) => {
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch(`${API_URL}products`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newProduct),
-      });
-
-      const createdProduct = await response.json();
+      const createdProduct = await addProduct(newProduct);
 
       setProducts([...products, createdProduct]);
 
       console.log(createdProduct);
     } catch (error) {
       console.log(error);
-      setError(error);
+      setError("Something went wrong while creating the product.");
     } finally {
       setLoading(false);
     }
@@ -87,36 +59,24 @@ function App() {
       <Header
         title="Product Store"
         subtitle="Welcome!"
-        cartCount={cart.length}
+        cartCount={cartItems.length}
       />
 
       <Routes>
-        {/* default path */}
-        <Route path="/" element={<Navigate to="/products" />} />
+        <Route path="/" element={<Navigate to="/products" replace />} />
 
         <Route
           path="/products"
           element={
             <ProductsPage
               products={products}
-              cart={cart}
               loading={loading}
-              onAddToCart={handleAddToCart}
               createProduct={createProduct}
             />
           }
         />
-        <Route
-          path="/cart"
-          element={
-            <CartPage
-              cart={cart}
-              total={total}
-              handleRemoveFromCart={handleRemoveFromCart}
-              handleClearCart={handleClearCart}
-            />
-          }
-        />
+
+        <Route path="/cart" element={<CartPage />} />
       </Routes>
     </div>
   );
