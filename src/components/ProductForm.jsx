@@ -12,12 +12,11 @@ function ProductForm({ onCreateProduct }) {
       price: Number(price),
       image: "https://picsum.photos/200/300",
       category: "custom",
-      description: "This is created from USER using React",
+      description: "This is created from the USER using React",
     };
 
     onCreateProduct(newProduct);
   };
-
   return (
     <form className="product-form" onSubmit={handleSubmit}>
       <h2>Create Product</h2>

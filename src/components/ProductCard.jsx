@@ -1,11 +1,11 @@
 function ProductCard({ title, price, image, onAddToCart, isInCart }) {
   return (
     <div className="product-card">
-      <img src={image} alt={title} className="product-image" />
+      <img src={image} alt={title} />
 
       <h3>{title}</h3>
 
-      <p>{price.toFixed(2)} €</p>
+      <p>Price: {price}€</p>
 
       <button onClick={onAddToCart} disabled={isInCart}>
         {isInCart ? "Added" : "Add to Cart"}

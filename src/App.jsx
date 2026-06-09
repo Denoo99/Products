@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import ProductCard from "./components/ProductCard";
 import Header from "./components/Header";
-import Cart from "./components/Cart";
-import ProductForm from "./components/ProductForm";
 import "./App.css";
+import { Routes, Route, Navigate } from "react-router-dom";
+import ProductsPage from "./pages/ProductsPage";
+import CartPage from "./pages/CartPage";
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -82,38 +82,42 @@ function App() {
 
   return (
     <div className="app">
-      {loading && <p className="info-text">Loading products...</p>}
-
       {error && <p className="error-text">{error}</p>}
 
-      <Header title="Product Store" subtitle="Welcome!" />
-      <div className="products-list">
-        {products.map((product) => {
-          const isInCart = cart.some((item) => {
-            return item.id === product.id;
-          });
-
-          return (
-            <ProductCard
-              key={product.id}
-              title={product.title}
-              price={product.price}
-              image={product.image}
-              isInCart={isInCart}
-              onAddToCart={() => handleAddToCart(product)}
-            />
-          );
-        })}
-      </div>
-
-      <Cart
-        cart={cart}
-        total={total}
-        onRemoveFromCart={handleRemoveFromCart}
-        onClearCart={handleClearCart}
+      <Header
+        title="Product Store"
+        subtitle="Welcome!"
+        cartCount={cart.length}
       />
 
-      <ProductForm onCreateProduct={createProduct} />
+      <Routes>
+        {/* default path */}
+        <Route path="/" element={<Navigate to="/products" />} />
+
+        <Route
+          path="/products"
+          element={
+            <ProductsPage
+              products={products}
+              cart={cart}
+              loading={loading}
+              onAddToCart={handleAddToCart}
+              createProduct={createProduct}
+            />
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <CartPage
+              cart={cart}
+              total={total}
+              handleRemoveFromCart={handleRemoveFromCart}
+              handleClearCart={handleClearCart}
+            />
+          }
+        />
+      </Routes>
     </div>
   );
 }
