@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import "./App.css";
-
-import Header from "./components/Header";
 import ProductCard from "./components/ProductCard";
+import Header from "./components/Header";
 import Cart from "./components/Cart";
+import ProductForm from "./components/ProductForm";
+import "./App.css";
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -11,77 +11,109 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchProducts = async () => {
+  const API_URL = "https://fakestoreapi.com/";
+  async function fetchProducts() {
     setLoading(true);
     setError("");
 
     try {
-      const response = await fetch("https://fakestoreapi.com/products");
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch products");
-      }
-
+      const response = await fetch(`${API_URL}products`);
       const data = await response.json();
 
       setProducts(data);
     } catch (error) {
-      console.error(error);
       setError("Something went wrong while fetching products.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(function () {
+    fetchProducts();
+  }, []);
+
+  function handleAddToCart(product) {
+    setCart([...cart, product]);
+  }
+
+  function handleRemoveFromCart(id) {
+    const updatedCart = cart.filter(function (item) {
+      return item.id !== id;
+    });
+
+    setCart(updatedCart);
+  }
+
+  function handleClearCart() {
+    setCart([]);
+  }
+
+  let total = 0;
+
+  cart.forEach((item) => {
+    total = total + item.price;
+  });
+
+  const createProduct = async (newProduct) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${API_URL}products`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newProduct),
+      });
+
+      const createdProduct = await response.json();
+
+      setProducts([...products, createdProduct]);
+
+      console.log(createdProduct);
+    } catch (error) {
+      console.log(error);
+      setError(error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const handleAddToCart = (product) => {
-    const exists = cart.some((item) => item.id === product.id);
-
-    if (!exists) {
-      setCart([...cart, product]);
-    }
-  };
-
-  const handleRemoveFromCart = (id) => {
-    setCart(cart.filter((item) => item.id !== id));
-  };
-
-  const handleClearCart = () => {
-    setCart([]);
-  };
-
-  const total = cart.reduce((sum, item) => sum + item.price, 0);
-
   return (
     <div className="app">
-      <Header title="Product Store" subtitle="React Practice App" />
+      {loading && <p className="info-text">Loading products...</p>}
 
-      {loading && <p>Loading products...</p>}
+      {error && <p className="error-text">{error}</p>}
 
-      {error && <p className="error">{error}</p>}
+      <Header title="Product Store" subtitle="Welcome!" />
+      <div className="products-list">
+        {products.map((product) => {
+          const isInCart = cart.some((item) => {
+            return item.id === product.id;
+          });
 
-      <div className="products-grid">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            title={product.title}
-            price={product.price}
-            image={product.image}
-            isInCart={cart.some((item) => item.id === product.id)}
-            onAddToCart={() => handleAddToCart(product)}
-          />
-        ))}
+          return (
+            <ProductCard
+              key={product.id}
+              title={product.title}
+              price={product.price}
+              image={product.image}
+              isInCart={isInCart}
+              onAddToCart={() => handleAddToCart(product)}
+            />
+          );
+        })}
       </div>
 
       <Cart
         cart={cart}
+        total={total}
         onRemoveFromCart={handleRemoveFromCart}
         onClearCart={handleClearCart}
-        total={total}
       />
+
+      <ProductForm onCreateProduct={createProduct} />
     </div>
   );
 }
